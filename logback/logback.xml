@@ -14,7 +14,7 @@
         </layout>
     </appender>
 
-    <appender name="DEBUG" class="ch.qos.logback.core.FileAppender">
+    <appender name="DEBUG" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <append>true</append>
         <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
             <level>TRACE</level>
@@ -25,7 +25,7 @@
             <maxHistory>30</maxHistory>
         </rollingPolicy>
         <encoder>
-            <pattern>time:%d{yyyy-MMM-dd HH:mm:ss.SSS} level:%level %marker thread:%thread logger:%logger AlbumnId:%X{AlbumnId} FlowId:%X{FlowId} message:%msg%n
+            <pattern>time:%d{yyyy-MMM-dd HH:mm:ss.SSS} level:%level %marker thread:%thread logger:%logger message:%msg%n
             </pattern>
         </encoder>
     </appender>
@@ -43,7 +43,7 @@
             <maxHistory>30</maxHistory>
         </rollingPolicy>
         <encoder>
-            <pattern>time:%d{yyyy-MMM-dd HH:mm:ss.SSS}	level:%level	%marker	thread:%thread	logger:%loggerAlbumnId:%X{AlbumnId}	FlowId:%X{FlowId}	message:%msg%n
+            <pattern>time:%d{yyyy-MMM-dd HH:mm:ss.SSS}	level:%level	%marker	thread:%thread	logger:%logger	message:%msg%n
             </pattern>
         </encoder>
     </appender>
@@ -59,9 +59,13 @@
             <maxHistory>30</maxHistory>
         </rollingPolicy>
         <encoder>
-            <pattern>time:%d{yyyy-MMM-dd HH:mm:ss.SSS}	level:%level	%marker	thread:%thread	logger:%logger	AlbumnId:%X{AlbumnId}	FlowId:%X{FlowId}	message:%msg%n
+            <pattern>time:%d{yyyy-MMM-dd HH:mm:ss.SSS}	level:%level	%marker	thread:%thread	logger:%logger	message:%msg%n
             </pattern>
         </encoder>
+    </appender>
+
+    <appender name="ASYNC_STDOUT1" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="STDOUT1"/>
     </appender>
 
     <appender name="ASYNC_INFO" class="ch.qos.logback.classic.AsyncAppender">
@@ -74,18 +78,6 @@
 
     <appender name="ASYNC_DEBUG" class="ch.qos.logback.classic.AsyncAppender">
         <appender-ref ref="DEBUG"/>
-    </appender>
-
-    <appender name="TimingLogger" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <append>true</append>
-        <file>${LoggingDir}perfStats.log</file>
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>${LoggingDir}perfStats%d{yyyy-MM-dd}.log</fileNamePattern>
-            <maxHistory>30</maxHistory>
-        </rollingPolicy>
-        <encoder>
-            <pattern>%msg%n</pattern>
-        </encoder>
     </appender>
 
 
@@ -104,42 +96,54 @@
     </turboFilter>
 
 
-    <logger name="org.perf4j.TimingLogger" level="INFO">
-        <appender-ref ref="TimingLogger"/>
+    <!-- This file appender is used to output aggregated performance statistics -->
+    <appender name="perf4jFileAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <File>${LoggingDir}perf4j.log</File>
+        <encoder>
+            <Pattern>%date %-5level [%thread] %logger{36} [%file:%line] %msg%n</Pattern>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <FileNamePattern>${LoggingDir}perf4j.%d{yyyy-MM-dd}.log</FileNamePattern>
+        </rollingPolicy>
+    </appender>
+
+    <logger name="org.perf4j.TimingLogger" additivity="false">
+        <level value="INFO"/>
+        <appender-ref ref="perf4jFileAppender"/>
     </logger>
 
     <logger name="org.springframework" level="INFO">
-        <appender-ref ref="STDOUT1"/>
-        <appender-ref ref="INFO"/>
+        <appender-ref ref="ASYNC_STDOUT1"/>
+        <appender-ref ref="ASYNC_INFO"/>
     </logger>
 
     <logger name="com.amazonaws" level="INFO">
-        <appender-ref ref="STDOUT1"/>
-        <appender-ref ref="INFO"/>
+        <appender-ref ref="ASYNC_STDOUT1"/>
+        <appender-ref ref="ASYNC_INFO"/>
     </logger>
 
     <logger name="org.apache.http" level="INFO">
-        <appender-ref ref="STDOUT1"/>
-        <appender-ref ref="INFO"/>
+        <appender-ref ref="ASYNC_STDOUT1"/>
+        <appender-ref ref="ASYNC_INFO"/>
     </logger>
 
     <logger name="org.apache.commons.configuration" level="INFO">
-        <appender-ref ref="STDOUT1"/>
-        <appender-ref ref="INFO"/>
+        <appender-ref ref="ASYNC_STDOUT1"/>
+        <appender-ref ref="ASYNC_INFO"/>
     </logger>
 
     <logger name="freemarker" level="INFO">
-        <appender-ref ref="STDOUT1"/>
-        <appender-ref ref="INFO"/>
+        <appender-ref ref="ASYNC_STDOUT1"/>
+        <appender-ref ref="ASYNC_INFO"/>
     </logger>
 
 
 
 
     <root level="${ROOT_LEVEL}">
-        <appender-ref ref="STDOUT1"/>
-        <appender-ref ref="INFO"/>
-        <appender-ref ref="ERROR"/>
+        <appender-ref ref="ASYNC_STDOUT1"/>
+        <appender-ref ref="ASYNC_INFO"/>
+        <appender-ref ref="ASYNC_ERROR"/>
         <appender-ref ref="ASYNC_DEBUG"/>
     </root>
 </configuration>
